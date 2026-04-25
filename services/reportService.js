@@ -1,15 +1,21 @@
 const Opportunity = require("../models/Opportunity");
 const Submission = require("../models/Submission");
 const ApiError = require("../utils/ApiError");
+const { parseLocation } = require("../utils/locationParser");
+const { detectCategory } = require("../utils/aiClassifier");
 
 function normalizeInput(payload = {}) {
+  const desc = String(payload.description || "").trim();
+  const addressSource = payload.location?.address || desc;
+  const parsedLoc = parseLocation(addressSource).address;
+
   return {
     title: String(payload.title || "").trim(),
-    description: String(payload.description || "").trim(),
-    category: payload.category || "general",
+    description: desc,
+    category: payload.category || detectCategory(desc) || "general",
     urgency: payload.urgency || "medium",
     peopleAffected: Number(payload.peopleAffected) || 0,
-    locationAddress: String(payload.location?.address || "").trim() || "Not specified",
+    locationAddress: Buffer.from(parsedLoc, "utf-8").length > 0 ? parsedLoc : "Not specified",
     status: payload.status === "draft" ? "draft" : "submitted"
   };
 }
@@ -57,12 +63,7 @@ async function createReport(payload) {
     sourceDetails: {
       name: "user"
     },
-    location: {
-      type: "Point",
-      coordinates: [0, 0],
-      address: normalized.locationAddress,
-      rawText: normalized.locationAddress
-    },
+    location: parseLocation(normalized.locationAddress),
     impact: {
       peopleAffected: normalized.peopleAffected
     },

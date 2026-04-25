@@ -10,13 +10,11 @@ const DEFAULT_CONCURRENCY = Math.max(1, Number(process.env.INGESTION_CONCURRENCY
 const MIN_QUALITY_SCORE = 2;
 const COMPLETION_PATTERN = /\b(completed|successfully\s+done)\b/i;
 
+const { parseLocation } = require("../utils/locationParser");
+const { detectCategory } = require("../utils/aiClassifier");
+
 function buildLocation(locationText) {
-  return {
-    type: "Point",
-    coordinates: [0, 0],
-    address: locationText || "Not specified",
-    rawText: locationText || ""
-  };
+  return parseLocation(locationText);
 }
 
 function normalizeForHash(value = "") {
@@ -132,7 +130,7 @@ function buildOpportunityPayload(parsed, location, contentHash) {
   return {
     title: parsed.title,
     description: parsed.description,
-    category: parsed.category,
+    category: parsed.category || detectCategory(parsed.description),
     urgency: parsed.urgency,
     sourceType: "web",
     sourceDetails: {

@@ -18,9 +18,19 @@ const userSchema = new Schema(
       peopleHelped: { type: Number, default: 0 },
       hoursContributed: { type: Number, default: 0 },
       tasksCompleted: { type: Number, default: 0 }
-    }
+    },
+    rankingScore: { type: Number, default: 0 }
   },
   { timestamps: true }
 );
+
+userSchema.pre('save', function(next) {
+  if (this.stats) {
+    this.rankingScore = (this.stats.peopleHelped * 5) + 
+                        (this.stats.hoursContributed * 2) + 
+                        (this.stats.tasksCompleted * 3);
+  }
+  next();
+});
 
 module.exports = mongoose.model("User", userSchema);

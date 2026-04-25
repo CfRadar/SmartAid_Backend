@@ -7,6 +7,8 @@ const reportRoutes = require("./reportRoutes");
 const submissionRoutes = require("./submission.routes");
 const authRoutes = require("./authRoutes");
 const profileRoutes = require("./profileRoutes");
+const recommendationRoutes = require("./recommendationRoutes");
+const leaderboardRoutes = require("./leaderboardRoutes");
 
 const router = express.Router();
 
@@ -21,6 +23,8 @@ router.use("/dashboard", dashboardRoutes);
 router.use("/report", reportRoutes);
 router.use("/auth", authRoutes);
 router.use("/profile", profileRoutes);
+router.use("/recommendations", recommendationRoutes);
+router.use("/leaderboard", leaderboardRoutes);
 router.use("/", ingestionRoutes);
 router.use("/opportunities", opportunityRoutes);
 router.use("/submissions", submissionRoutes);
