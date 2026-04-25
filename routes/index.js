@@ -5,6 +5,8 @@ const ingestionRoutes = require("./ingestion.routes");
 const opportunityRoutes = require("./opportunity.routes");
 const reportRoutes = require("./reportRoutes");
 const submissionRoutes = require("./submission.routes");
+const authRoutes = require("./authRoutes");
+const profileRoutes = require("./profileRoutes");
 
 const router = express.Router();
 
@@ -17,8 +19,13 @@ router.get("/health", (req, res) => {
 
 router.use("/dashboard", dashboardRoutes);
 router.use("/report", reportRoutes);
+router.use("/auth", authRoutes);
+router.use("/profile", profileRoutes);
 router.use("/", ingestionRoutes);
 router.use("/opportunities", opportunityRoutes);
+router.use("/submissions", submissionRoutes);
+
+module.exports = router;
 router.use("/submissions", submissionRoutes);
 
 module.exports = router;

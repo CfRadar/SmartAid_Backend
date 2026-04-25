@@ -1,5 +1,20 @@
 require("dotenv").config();
 
+if (!process.env.JWT_SECRET) {
+  console.error("Missing JWT_SECRET in .env");
+  process.exit(1);
+}
+if (!process.env.MONGODB_URI) {
+  console.error("Missing MONGODB_URI in .env");
+  process.exit(1);
+}
+if (!process.env.SERP_API_KEY) {
+  console.warn("Missing SERP_API_KEY in .env");
+}
+if (!process.env.URL) {
+  console.warn("Missing URL in .env");
+}
+
 const compression = require("compression");
 const cors = require("cors");
 const express = require("express");
@@ -19,6 +34,7 @@ app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") || "*" }));
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+app.use(express.static(__dirname));
 
 if (process.env.NODE_ENV !== "production") {
 	app.use(morgan("dev"));
