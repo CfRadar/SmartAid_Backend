@@ -1,5 +1,6 @@
 const cron = require("node-cron");
 const { runWebIngestion } = require("./ingestionService");
+const { archiveExpiredOpportunities } = require("./opportunity.service");
 
 const PREDEFINED_QUERIES = [
   "food donation India",
@@ -8,10 +9,11 @@ const PREDEFINED_QUERIES = [
 ];
 
 function startIngestionCron() {
-  const schedule = "*/30 * * * *";
+  const ingestionSchedule = "*/30 * * * *";
+  const expirySchedule = "0 * * * *";
 
   const task = cron.schedule(
-    schedule,
+    ingestionSchedule,
     async () => {
       try {
         await runWebIngestion(PREDEFINED_QUERIES);
@@ -22,7 +24,21 @@ function startIngestionCron() {
     { timezone: process.env.CRON_TIMEZONE || "Asia/Kolkata" }
   );
 
-  console.log(`[INGESTION] cron started with schedule: ${schedule}`);
+  const expiryTask = cron.schedule(
+    expirySchedule,
+    async () => {
+      try {
+        const archivedCount = await archiveExpiredOpportunities();
+        console.log(`[EXPIRY] archived opportunities=${archivedCount}`);
+      } catch (error) {
+        console.error("[EXPIRY] cron execution failed:", error.message);
+      }
+    },
+    { timezone: process.env.CRON_TIMEZONE || "Asia/Kolkata" }
+  );
+
+  console.log(`[INGESTION] cron started with schedule: ${ingestionSchedule}`);
+  console.log(`[EXPIRY] cron started with schedule: ${expirySchedule}`);
 
   if (process.env.INGESTION_RUN_ON_STARTUP === "true") {
     runWebIngestion(PREDEFINED_QUERIES).catch((error) => {
@@ -30,7 +46,10 @@ function startIngestionCron() {
     });
   }
 
-  return task;
+  return {
+    ingestionTask: task,
+    expiryTask
+  };
 }
 
 module.exports = {

@@ -6,6 +6,7 @@ const allowedUrgency = ["low", "medium", "high"];
 const allowedStatus = ["open", "ongoing", "completed", "archived"];
 const allowedSourceType = ["web", "user", "ngo"];
 const allowedCategories = ["food", "education", "medical", "disaster", "general"];
+const WEB_EXPIRY_HOURS = 48;
 
 const opportunitySchema = new Schema(
   {
@@ -193,6 +194,11 @@ const opportunitySchema = new Schema(
       default: "open",
       index: true
     },
+    expiresAt: {
+      type: Date,
+      default: null,
+      index: true
+    },
     verification: {
       isVerified: {
         type: Boolean,
@@ -240,5 +246,38 @@ opportunitySchema.index({ sourceType: 1, "sourceDetails.externalId": 1 });
 opportunitySchema.index({ "sourceDetails.url": 1 }, { sparse: true });
 opportunitySchema.index({ contentHash: 1 });
 opportunitySchema.index({ "location.address": 1 });
+
+opportunitySchema.pre("save", function preSave(next) {
+  if (this.status === "completed") {
+    this.status = "archived";
+  }
+
+  if (this.sourceType === "web" && !this.expiresAt) {
+    this.expiresAt = new Date(Date.now() + WEB_EXPIRY_HOURS * 60 * 60 * 1000);
+  }
+
+  next();
+});
+
+opportunitySchema.pre("findOneAndUpdate", function preFindOneAndUpdate(next) {
+  const update = this.getUpdate() || {};
+  const set = update.$set || {};
+
+  const status = set.status || update.status;
+  const sourceType = set.sourceType || update.sourceType;
+  const expiresAt = set.expiresAt || update.expiresAt;
+
+  if (status === "completed") {
+    set.status = "archived";
+  }
+
+  if (sourceType === "web" && !expiresAt) {
+    set.expiresAt = new Date(Date.now() + WEB_EXPIRY_HOURS * 60 * 60 * 1000);
+  }
+
+  update.$set = set;
+  this.setUpdate(update);
+  next();
+});
 
 module.exports = mongoose.model("Opportunity", opportunitySchema);

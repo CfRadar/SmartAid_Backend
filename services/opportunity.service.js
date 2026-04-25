@@ -8,6 +8,10 @@ function parseNumber(value, fallback = null) {
   return Number.isNaN(parsed) ? fallback : parsed;
 }
 
+function escapeRegex(value = "") {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function buildLocationFilter({ longitude, latitude, maxDistanceKm }) {
   const lng = parseNumber(longitude);
   const lat = parseNumber(latitude);
@@ -35,6 +39,7 @@ async function listOpportunities(filters = {}) {
     urgency,
     status = "open",
     sourceType,
+    location,
     ngoId,
     page = 1,
     limit = 20,
@@ -50,6 +55,9 @@ async function listOpportunities(filters = {}) {
   if (urgency) query.urgency = urgency;
   if (status) query.status = status;
   if (sourceType) query.sourceType = sourceType;
+  if (location) {
+    query["location.address"] = { $regex: escapeRegex(location), $options: "i" };
+  }
   if (ngoId && mongoose.Types.ObjectId.isValid(ngoId)) query.ngoId = ngoId;
 
   Object.assign(query, buildLocationFilter({ longitude, latitude, maxDistanceKm }));
@@ -111,8 +119,27 @@ async function createOpportunity(payload) {
   return Opportunity.create(payload);
 }
 
+async function archiveExpiredOpportunities() {
+  const now = new Date();
+
+  const result = await Opportunity.updateMany(
+    {
+      expiresAt: { $lt: now },
+      status: { $ne: "archived" }
+    },
+    {
+      $set: {
+        status: "archived"
+      }
+    }
+  );
+
+  return result.modifiedCount || 0;
+}
+
 module.exports = {
   listOpportunities,
   getNearbyOpportunities,
-  createOpportunity
+  createOpportunity,
+  archiveExpiredOpportunities
 };

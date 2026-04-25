@@ -8,6 +8,7 @@ const webSearchService = require("./webSearchService");
 
 const DEFAULT_CONCURRENCY = Math.max(1, Number(process.env.INGESTION_CONCURRENCY || 4));
 const MIN_QUALITY_SCORE = 2;
+const COMPLETION_PATTERN = /\b(completed|successfully\s+done)\b/i;
 
 function buildLocation(locationText) {
   return {
@@ -126,6 +127,8 @@ async function findExistingOpportunity(parsed, contentHash) {
 }
 
 function buildOpportunityPayload(parsed, location, contentHash) {
+  const completionDetected = COMPLETION_PATTERN.test(parsed.description || "");
+
   return {
     title: parsed.title,
     description: parsed.description,
@@ -152,7 +155,7 @@ function buildOpportunityPayload(parsed, location, contentHash) {
       isVerified: false,
       confidenceScore: parsed.confidenceScore
     },
-    status: "open",
+    status: completionDetected ? "completed" : "open",
     tags: [parsed.category, parsed.urgency, "web-ingested"]
   };
 }
@@ -268,6 +271,9 @@ async function processSingleResult(result) {
           : existingOpportunity.verification),
         confidenceScore: parsed.confidenceScore
       };
+      if (COMPLETION_PATTERN.test(parsed.description || "")) {
+        existingOpportunity.status = "completed";
+      }
       existingOpportunity.updatedAt = new Date();
 
       await existingOpportunity.save();
@@ -314,6 +320,7 @@ async function runWebIngestion(queries) {
 
   const stats = {
     totalFetched: 0,
+    submissionsProcessed: 0,
     created: 0,
     updated: 0,
     skipped: 0,
@@ -338,6 +345,7 @@ async function runWebIngestion(queries) {
   );
 
   for (const item of processed) {
+    stats.submissionsProcessed += 1;
     if (item.outcome === "created") stats.created += 1;
     else if (item.outcome === "updated") stats.updated += 1;
     else if (item.outcome === "skipped") stats.skipped += 1;
@@ -345,7 +353,7 @@ async function runWebIngestion(queries) {
   }
 
   console.log(
-    `[INGESTION] fetched=${stats.totalFetched} created=${stats.created} updated=${stats.updated} skipped=${stats.skipped} failed=${stats.failed}`
+    `[INGESTION] fetched=${stats.totalFetched} submissionsProcessed=${stats.submissionsProcessed} created=${stats.created} updated=${stats.updated} skipped=${stats.skipped} failed=${stats.failed}`
   );
 
   return stats;
