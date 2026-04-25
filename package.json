@@ -1,19 +1,24 @@
 {
   "name": "googlesolutionchallengebackend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Production-grade backend for volunteer and NGO platform",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node --watch index.js",
+    "start": "node index.js",
+    "test": "echo \"No tests configured yet\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "compression": "^1.8.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "moongoose": "^0.0.1"
+    "helmet": "^8.1.0",
+    "mongoose": "^8.18.1",
+    "morgan": "^1.10.1"
   }
 }
