@@ -39,6 +39,11 @@ const submissionSchema = new Schema(
       default: "pending",
       index: true
     },
+    errorMessage: {
+      type: String,
+      trim: true,
+      maxlength: 1000
+    },
     linkedOpportunityId: {
       type: Schema.Types.ObjectId,
       ref: "Opportunity"
@@ -55,5 +60,6 @@ const submissionSchema = new Schema(
 );
 
 submissionSchema.index({ type: 1, processingStatus: 1 });
+submissionSchema.index({ "sourceMeta.url": 1 }, { sparse: true });
 
 module.exports = mongoose.model("Submission", submissionSchema);

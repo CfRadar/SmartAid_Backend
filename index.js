@@ -8,6 +8,7 @@ const morgan = require("morgan");
 
 const connectDB = require("./config/db");
 const apiRoutes = require("./routes");
+const { startIngestionCron } = require("./services/ingestionCron");
 const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
@@ -28,11 +29,14 @@ app.use("/api", apiRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const PORT = Number(process.env.PORT) || 4000;
+const PORT = Number(process.env.PORT) || 3000;
 
 async function start() {
 	try {
 		await connectDB();
+		if (process.env.INGESTION_CRON_ENABLED !== "false") {
+			startIngestionCron();
+		}
 		app.listen(PORT, () => {
 			// eslint-disable-next-line no-console
 			console.log(`Server running on port ${PORT}`);

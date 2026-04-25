@@ -1,5 +1,6 @@
 const express = require("express");
 
+const ingestionRoutes = require("./ingestion.routes");
 const opportunityRoutes = require("./opportunity.routes");
 const submissionRoutes = require("./submission.routes");
 
@@ -12,6 +13,7 @@ router.get("/health", (req, res) => {
   });
 });
 
+router.use("/", ingestionRoutes);
 router.use("/opportunities", opportunityRoutes);
 router.use("/submissions", submissionRoutes);
 

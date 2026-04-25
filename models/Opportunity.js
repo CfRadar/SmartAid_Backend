@@ -5,6 +5,7 @@ const { Schema } = mongoose;
 const allowedUrgency = ["low", "medium", "high"];
 const allowedStatus = ["open", "ongoing", "completed", "archived"];
 const allowedSourceType = ["web", "user", "ngo"];
+const allowedCategories = ["food", "education", "medical", "disaster", "general"];
 
 const opportunitySchema = new Schema(
   {
@@ -23,6 +24,7 @@ const opportunitySchema = new Schema(
     category: {
       type: String,
       required: true,
+      enum: allowedCategories,
       trim: true,
       index: true
     },
@@ -67,6 +69,10 @@ const opportunitySchema = new Schema(
         maxlength: 120
       }
     },
+    contentHash: {
+      type: String,
+      trim: true
+    },
     location: {
       type: {
         type: String,
@@ -85,7 +91,14 @@ const opportunitySchema = new Schema(
           message: "Coordinates must be [longitude, latitude]"
         }
       },
-      address: String,
+      address: {
+        type: String,
+        trim: true
+      },
+      rawText: {
+        type: String,
+        trim: true
+      },
       city: String,
       state: String,
       country: String,
@@ -107,6 +120,11 @@ const opportunitySchema = new Schema(
         trim: true,
         lowercase: true,
         match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"]
+      },
+      sourceText: {
+        type: String,
+        trim: true,
+        maxlength: 4000
       }
     },
     requirements: {
@@ -219,5 +237,8 @@ const opportunitySchema = new Schema(
 opportunitySchema.index({ location: "2dsphere" });
 opportunitySchema.index({ category: 1, urgency: 1, status: 1 });
 opportunitySchema.index({ sourceType: 1, "sourceDetails.externalId": 1 });
+opportunitySchema.index({ "sourceDetails.url": 1 }, { sparse: true });
+opportunitySchema.index({ contentHash: 1 });
+opportunitySchema.index({ "location.address": 1 });
 
 module.exports = mongoose.model("Opportunity", opportunitySchema);
