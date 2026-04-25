@@ -7,6 +7,7 @@
 - **Web Data Ingestion**: Automated background extraction of real-world opportunities parsing Web APIs.
 - **User-Submitted Reports**: Direct submission forms for crowdsourcing emergent aid requirements.
 - **Intelligent Deduplication**: Smart matching heuristics to merge similar scraped and submitted reports.
+
 - **Dashboard Analytics**: Top-level statistic tracking for data aggregation.
 - **OTP Authentication**: Secure, spreadsheet-backed (Google Apps Script) passwordless OTP verification flows.
 - **Recommendations & Leaderboard**: Automated tagging and matching engine that pairs users with the best opportunities and ranks power-users based on engagement.
@@ -231,6 +232,52 @@ All routes assume the base path: `/api`
       "location": { "address": "Denver, CO" }
     }
   ]
+  ```
+
+**`GET /api/opportunities/nearby`**
+- **Description**: Find geographically adjacent opportunities using MongoDB 2dsphere spatial querying.
+- **Query Params**: `?lat=40.7128&lng=-74.0060&radius=15` (radius in km)
+- **Sample Response**:
+  ```json
+  [
+    {
+      "title": "Food Drive - Downtown",
+      "location": { "type": "Point", "coordinates": [-74.0060, 40.7128] }
+    }
+  ]
+  ```
+
+### 📥 Raw Submissions
+
+**`GET /api/submissions`**
+- **Description**: Returns all unparsed data payloads before they are formatted into Opportunities.
+- **Sample Response**:
+  ```json
+  [
+    {
+      "_id": "abc1234",
+      "type": "web",
+      "processingStatus": "processed"
+    }
+  ]
+  ```
+
+**`POST /api/submissions`**
+- **Description**: A lower-level route for manually inserting a raw unstructured object.
+
+**`POST /api/submissions/:id/process`**
+- **Description**: Manually forces the worker routine to execute parsing logic against a specific raw submission ID.
+
+### 🩺 System Health
+
+**`GET /api/health`**
+- **Description**: Basic ping verifying the API is active and ready.
+- **Sample Response**:
+  ```json
+  {
+    "success": true,
+    "message": "Volunteer platform API is healthy"
+  }
   ```
 
 ### ⭐ Recommendations
