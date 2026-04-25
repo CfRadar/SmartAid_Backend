@@ -226,10 +226,35 @@ All routes assume the base path: `/api`
   ```json
   [
     {
-      "title": "Local Clinic Volunteer",
+      "_id": "64bc1...",
+      "title": "Local Clinic Volunteer Needed",
+      "description": "We need 5 volunteers to assist with triage and basic paperwork at the downtown clinic.",
       "category": "medical",
       "urgency": "high",
-      "location": { "address": "Denver, CO" }
+      "sourceType": "web",
+      "sourceDetails": {
+        "name": "Denver Health Portal",
+        "url": "https://example.com/volunteer"
+      },
+      "location": {
+        "type": "Point",
+        "coordinates": [-104.9903, 39.7392],
+        "address": "Denver, CO"
+      },
+      "contact": {
+        "name": "Jane Doe",
+        "email": "volunteer@clinic.org"
+      },
+      "requirements": {
+        "peopleNeeded": 5,
+        "skillsRequired": ["CPR", "Administration"]
+      },
+      "impact": {
+        "peopleAffected": 150
+      },
+      "status": "open",
+      "createdAt": "2023-11-20T10:00:00.000Z",
+      "expiresAt": "2023-11-22T10:00:00.000Z"
     }
   ]
   ```
