@@ -4,8 +4,8 @@
   "description": "Production-grade backend for volunteer and NGO platform",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js",
+    "dev": "cross-env NODE_ENV=development nodemon index.js",
+    "start": "cross-env NODE_ENV=production node index.js",
     "test": "echo \"No tests configured yet\""
   },
   "keywords": [],
@@ -27,6 +27,7 @@
     "p-limit": "^3.1.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "nodemon": "^3.1.14"
   }
 }
