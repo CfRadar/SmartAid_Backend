@@ -29,6 +29,10 @@ exports.login = async (req, res) => {
     const result = await authService.login(email, password);
     res.json(result);
   } catch (err) {
-    res.status(401).json({ error: err.message });
+    const errorResponse = { error: err.message };
+    if (err.needsVerification) {
+      errorResponse.needsVerification = true;
+    }
+    res.status(401).json(errorResponse);
   }
 };

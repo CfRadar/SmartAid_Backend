@@ -9,14 +9,32 @@ function generateOTP() {
 
 async function signup(email, password) {
   const existing = await User.findOne({ email });
-  if (existing) {
-    throw new Error("User already exists");
-  }
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
   const otp = generateOTP();
   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+
+  if (existing) {
+    if (existing.isVerified) {
+      throw new Error("User already exists, please login");
+    } else {
+      existing.password = hashedPassword;
+      existing.otp = otp;
+      existing.otpExpiry = otpExpiry;
+      await existing.save();
+
+      if (process.env.URL) {
+        try {
+          await axios.post(process.env.URL, { email, otp });
+        } catch (err) {
+          console.warn("Failed to send OTP to Google Script:", err.message);
+        }
+      }
+
+      return { message: "OTP resent" };
+    }
+  }
 
   await User.create({
     email,
@@ -74,7 +92,11 @@ async function login(email, password) {
   const match = await bcrypt.compare(password, user.password);
   if (!match) throw new Error("Invalid email or password");
 
-  if (!user.isVerified) throw new Error("Please verify your email first");
+  if (!user.isVerified) {
+    const error = new Error("Please verify your account first");
+    error.needsVerification = true;
+    throw error;
+  }
 
   const token = jwt.sign(
     { userId: user._id, email: user.email },
