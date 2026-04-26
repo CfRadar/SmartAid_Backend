@@ -4,6 +4,8 @@ const profileController = require("../controllers/profileController");
 const authMiddleware = require("../middleware/authMiddleware");
 
 router.use(authMiddleware.verifyToken);
+
+router.post("/setup", profileController.setupProfile);
 router.get("/", profileController.getProfile);
 router.put("/", profileController.updateProfile);
 

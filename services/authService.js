@@ -37,22 +37,17 @@ async function signup(email, password) {
   return { message: "OTP sent" };
 }
 
-async function verifyOtp(email, otp, profileData) {
+async function verifyOtp(email, otp) {
   const user = await User.findOne({ email });
   if (!user) throw new Error("User not found");
   if (user.isVerified) throw new Error("User already verified");
-  
+
   if (user.otp !== otp) throw new Error("Invalid OTP");
   if (user.otpExpiry < new Date()) throw new Error("OTP expired");
 
   user.isVerified = true;
   user.otp = undefined;
   user.otpExpiry = undefined;
-
-  if (profileData.skills) user.skills = profileData.skills;
-  if (profileData.interests) user.interests = profileData.interests;
-  if (profileData.availability) user.availability = profileData.availability;
-  if (profileData.location) user.location = { address: profileData.location };
 
   await user.save();
 
@@ -62,16 +57,20 @@ async function verifyOtp(email, otp, profileData) {
     { expiresIn: "7d" }
   );
 
-  const userData = user.toObject();
-  delete userData.password;
-
-  return { token, user: userData };
+  return {
+    token,
+    user: {
+      email: user.email,
+      isVerified: user.isVerified,
+      profileCompleted: user.profileCompleted
+    }
+  };
 }
 
 async function login(email, password) {
   const user = await User.findOne({ email });
   if (!user) throw new Error("Invalid email or password");
-  
+
   const match = await bcrypt.compare(password, user.password);
   if (!match) throw new Error("Invalid email or password");
 
@@ -83,7 +82,13 @@ async function login(email, password) {
     { expiresIn: "7d" }
   );
 
-  return { token };
+  return {
+    token,
+    user: {
+      email: user.email,
+      profileCompleted: user.profileCompleted
+    }
+  };
 }
 
 module.exports = { signup, verifyOtp, login };

@@ -103,16 +103,12 @@ All routes assume the base path: `/api`
   ```
 
 **`POST /api/auth/verify-otp`**
-- **Description**: Validates OTP and populates the first-time demographic profile, returning a token.
+- **Description**: Validates OTP, marks the user as verified, and returns a JWT. **Does not accept profile fields** — profile setup is a separate step.
 - **Request Body**: 
   ```json
   { 
     "email": "user@example.com", 
-    "otp": "123456", 
-    "skills": ["first aid"], 
-    "interests": ["medical"], 
-    "availability": "weekends", 
-    "location": "New York" 
+    "otp": "123456"
   }
   ```
 - **Sample Response**:
@@ -120,11 +116,9 @@ All routes assume the base path: `/api`
   {
     "token": "eyJhbGciOiJIUzI1NiIsIn...",
     "user": {
-      "_id": "60d5ecb8b392...",
       "email": "user@example.com",
       "isVerified": true,
-      "skills": ["first aid"],
-      "interests": ["medical"]
+      "profileCompleted": false
     }
   }
   ```
@@ -141,11 +135,41 @@ All routes assume the base path: `/api`
 - **Sample Response**:
   ```json
   {
-    "token": "eyJhbGciOiJIUzI1NiIsIn..."
+    "token": "eyJhbGciOiJIUzI1NiIsIn...",
+    "user": {
+      "email": "user@example.com",
+      "profileCompleted": true
+    }
   }
   ```
 
 ### 👤 Profile
+
+**`POST /api/profile/setup`** ⭐ New
+- **Description**: First-time profile onboarding after OTP verification. Sets `profileCompleted = true`. Requires JWT.
+- **Headers**: `Authorization: Bearer <your_jwt_token>`
+- **Request Body**:
+  ```json
+  {
+    "skills": ["first aid", "logistics"],
+    "interests": ["medical", "disaster"],
+    "availability": "weekends",
+    "location": { "address": "New York, NY" }
+  }
+  ```
+- **Sample Response**:
+  ```json
+  {
+    "_id": "60d5ecb8b392...",
+    "email": "user@example.com",
+    "isVerified": true,
+    "profileCompleted": true,
+    "skills": ["first aid", "logistics"],
+    "interests": ["medical", "disaster"],
+    "availability": "weekends",
+    "location": { "address": "New York, NY" }
+  }
+  ```
 
 **`GET /api/profile`**
 - **Description**: Retrieves your authenticated metadata and calculated contribution stats.
@@ -370,12 +394,17 @@ Our data pipeline operates on two distinct streams converging into a unified `Op
 
 ## 🔑 Authentication Workflow Flowchart
 
-The system applies a hard-line gate strategy initially:
-1. User provides email/password (**Signup**).
-2. System broadcasts secure **OTP**.
-3. User supplies the OTP + Demographics (**Verify** + Profile Setup).
-4. System sets `isVerified = true` and yields **JWT**.
-5. Subsequent access follows traditional Email/Pass → **Login**.
+The system uses a clean two-phase onboarding strategy:
+
+**New User Flow:**
+1. `POST /api/auth/signup` — User provides email/password. System broadcasts a secure **OTP**.
+2. `POST /api/auth/verify-otp` — User supplies OTP. System sets `isVerified = true` and returns a **JWT** with `profileCompleted: false`.
+3. `POST /api/profile/setup` *(if `profileCompleted === false`)* — Frontend calls this protected endpoint with user demographics. System sets `profileCompleted = true`.
+4. User is now fully onboarded and can access all app features.
+
+**Returning User Flow:**
+5. `POST /api/auth/login` — Standard email/password. Returns JWT with current `profileCompleted` status.
+6. If `profileCompleted === false`, redirect to profile setup before granting access to protected features.
 
 ---
 

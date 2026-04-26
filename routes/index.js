@@ -30,6 +30,3 @@ router.use("/opportunities", opportunityRoutes);
 router.use("/submissions", submissionRoutes);
 
 module.exports = router;
-router.use("/submissions", submissionRoutes);
-
-module.exports = router;

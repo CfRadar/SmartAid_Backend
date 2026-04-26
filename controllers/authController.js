@@ -13,12 +13,9 @@ exports.signup = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
   try {
-    const { email, otp, skills, interests, availability, location } = req.body;
+    const { email, otp } = req.body;
     if (!email || !otp) return res.status(400).json({ error: "Email and OTP required" });
-    if (!skills || !interests || !availability || !location) {
-        return res.status(400).json({ error: "Profile fields required" });
-    }
-    const result = await authService.verifyOtp(email, otp, { skills, interests, availability, location });
+    const result = await authService.verifyOtp(email, otp);
     res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });

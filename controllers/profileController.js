@@ -9,6 +9,25 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+/**
+ * POST /api/profile/setup
+ * First-time profile onboarding. Requires JWT. Sets profileCompleted = true.
+ */
+exports.setupProfile = async (req, res) => {
+  try {
+    const { skills, interests, availability, location } = req.body;
+    const profile = await profileService.setupProfile(req.user._id, {
+      skills,
+      interests,
+      availability,
+      location
+    });
+    res.json(profile);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
 exports.updateProfile = async (req, res) => {
   try {
     const { skills, interests, availability, location } = req.body;
