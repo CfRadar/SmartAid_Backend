@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Backend System API Tester</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f1f5f9;
+        color: #1e293b;
+      }
+      h1, h2, h3 { margin-top: 0; }
+      .card {
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      }
+      .error-msg { background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 6px; display: none; margin-bottom: 12px; font-weight: 500; }
+      .success-msg { background: #dcfce3; color: #15803d; padding: 12px; border-radius: 6px; display: none; margin-bottom: 12px; font-weight: 500; }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+      input, textarea, select {
+        width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 12px; box-sizing: border-box; background: #f8fafc;
+      }
+      input:focus, textarea:focus, select:focus { outline: none; border-color: #3b82f6; ring: 2px; }
+      textarea { min-height: 90px; }
+      button {
+        border: none; background: #2563eb; color: white; padding: 10px 16px;
+        border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1; text-align: center;
+        transition: background-color 0.2s;
+      }
+      button:hover { background: #1d4ed8; }
+      button.secondary { background: #64748b; }
+      button.secondary:hover { background: #475569; }
+      button.success { background: #16a34a; }
+      button.success:hover { background: #15803d; }
+      button.danger { background: #ef4444; }
+      button.danger:hover { background: #dc2626; }
+      pre {
+        background: #0f172a; color: #f8fafc; padding: 16px; border-radius: 8px;
+        max-height: 480px; overflow: auto; white-space: pre-wrap; word-wrap: break-word; font-family: ui-monospace, monospace;
+      }
+      hr { border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0; }
+      .badge { background: #22c55e; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <h1>Backend Sandbox Interface</h1>
+    <p style="color: #64748b; margin-bottom: 24px;">Test all configured API routes from one dashboard.</p>
+
+    <!-- AUTHENTICATION SECTION -->
+    <div id="authArea" class="card">
+      <h3 style="color: #334155;">🔒 Authentication <span style="font-weight: normal; font-size: 14px; color: #ef4444;">(Required)</span></h3>
+      <div id="authErrorMsg" class="error-msg"></div>
+      <div id="authSuccessMsg" class="success-msg"></div>
+
+      <div class="row">
+        <input style="flex:1" type="email" id="authEmail" placeholder="Email (user@example.com)">
+        <input style="flex:1" type="password" id="authPassword" placeholder="Password">
+      </div>
+      
+      <div class="row">
+        <button id="btnSignup">1. Signup</button>
+        <button id="btnLogin" class="success">Login to Existing Account</button>
+      </div>
+
+      <hr>
+      
+      <h4>First Time Setup: Verify OTP & Build Profile</h4>
+      <p style="font-size: 13px; color: #64748b; margin-top: -10px;">Check your email/sheets for the 6-digit OTP code.</p>
+      
+      <input type="text" id="authOtp" placeholder="OTP Code (e.g. 123456)">
+      <div class="row">
+        <input style="flex:1" type="text" id="newProfileSkills" placeholder="Skills (comma separated)">
+        <input style="flex:1" type="text" id="newProfileInterests" placeholder="Interests (comma separated)">
+      </div>
+      <div class="row">
+        <input style="flex:1" type="text" id="newProfileAvailability" placeholder="Availability (e.g., Weekends)">
+        <input style="flex:1" type="text" id="newProfileLocation" placeholder="Address/Location">
+      </div>
+
+      <div class="row">
+        <button id="btnVerifyOtp" class="secondary">2. Verify OTP & Create Account</button>
+      </div>
+    </div>
+
+    <!-- MAIN APP SECTION -->
+    <div id="app" style="display:none;">
+      
+      <div class="card" style="background:#f0fdf4; border: 1px solid #bbf7d0;">
+        <div class="row" style="justify-content: space-between; margin-bottom: 0;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="badge">Authenticated</span>
+            <strong style="color: #166534;" id="userDisplay">Welcome</strong>
+          </div>
+          <button id="btnLogout" class="danger" style="flex: 0 1 auto;">Logout Session</button>
+        </div>
+      </div>
+
+      <!-- PROFILE MANAGEMENT -->
+      <div class="card">
+        <h3>👤 Profile Management</h3>
+        <p style="font-size: 13px; color: #64748b; margin-top: -10px;">Review and update your system profile.</p>
+
+        <div class="row">
+          <input style="flex:1" id="editProfileSkills" type="text" placeholder="Update Skills" />
+          <input style="flex:1" id="editProfileInterests" type="text" placeholder="Update Interests" />
+        </div>
+        <div class="row">
+          <input style="flex:1" id="editProfileAvailability" type="text" placeholder="Update Availability" />
+          <input style="flex:1" id="editProfileLocation" type="text" placeholder="Update Location" />
+        </div>
+
+        <div class="row">
+          <button id="getProfile" class="secondary">Fetch Current Profile</button>
+          <button id="updateProfile">Update Profile Data</button>
+        </div>
+      </div>
+
+      <!-- REPORT FORM -->
+      <div class="card">
+        <h3>📄 Report Management</h3>
+        <input id="title" type="text" placeholder="Title" />
+        <textarea id="description" placeholder="Description"></textarea>
+        
+        <div class="row">
+          <input style="flex:1" id="category" type="text" placeholder="Category" />
+          <select style="flex:1; margin-bottom:0;" id="urgency">
+            <option value="">Select urgency</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        
+        <div class="row">
+          <input style="flex:1" id="peopleAffected" type="number" placeholder="People affected" />
+          <input style="flex:1" id="location" type="text" placeholder="Address" />
+        </div>
+
+        <div class="row">
+          <button id="submitReport">Submit Finalized Report</button>
+          <button id="saveDraft" class="secondary">Save as Draft</button>
+        </div>
+      </div>
+
+      <!-- UTILITY FETCH ACTIONS -->
+      <div class="card">
+        <h3>⚡ Direct Platform Actions</h3>
+        <div class="row">
+          <button id="getOpportunities">Load Opportunities</button>
+          <button id="getDashboardStats">Load Dashboard Stats</button>
+          <button id="runIngestion" class="secondary">Run External Ingestion</button>
+        </div>
+        <p style="font-size: 13px; color: #b91c1c; margin-top: -5px; margin-bottom: 12px; font-weight: 500;">
+          ⚠️ Ingestion Search automatically runs every 30 mins in the background. Spamming the manual button will drain your SerpAPI limits.
+        </p>
+        <div class="row">
+          <button id="getRecommendations" class="success">Get Recommendations</button>
+          <button id="getLeaderboard" class="success">Get Leaderboard</button>
+        </div>
+      </div>
+
+    </div> <!-- END APP -->
+
+    <h3 style="margin-top:20px; color: #334155;">Terminal Output</h3>
+    <pre id="output">Waiting for actions...</pre>
+
+    <script>
+      const baseUrl = "http://localhost:3000/api";
+      const output = document.getElementById("output");
+      const authArea = document.getElementById("authArea");
+      const appArea = document.getElementById("app");
+      const authErrorMsg = document.getElementById("authErrorMsg");
+      const authSuccessMsg = document.getElementById("authSuccessMsg");
+      const userDisplay = document.getElementById("userDisplay");
+
+      function showOutput(data) {
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+
+      function showError(msg) {
+        authErrorMsg.textContent = msg;
+        authErrorMsg.style.display = "block";
+        authSuccessMsg.style.display = "none";
+      }
+
+      function showSuccess(msg) {
+        authSuccessMsg.textContent = msg;
+        authSuccessMsg.style.display = "block";
+        authErrorMsg.style.display = "none";
+      }
+
+      function checkAuth() {
+        const token = localStorage.getItem("token");
+        if (token) {
+          authArea.style.display = "none";
+          appArea.style.display = "block";
+          authErrorMsg.style.display = "none";
+          authSuccessMsg.style.display = "none";
+          
+          // Optionally retrieve cached identifier
+          const cachedUser = localStorage.getItem("userEmail");
+          if(cachedUser) userDisplay.textContent = `Welcome, ${cachedUser}`;
+        } else {
+          authArea.style.display = "block";
+          appArea.style.display = "none";
+        }
+      }
+
+      async function callApi(path, options = {}) {
+        const token = localStorage.getItem("token");
+        
+        const headers = {
+          "Content-Type": "application/json",
+          ...options.headers
+        };
+        
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+        
+        try {
+          const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
+          const text = await response.text();
+
+          try {
+            const json = JSON.parse(text);
+            
+            // Auto logout if backend kicks out token (unauthorized)
+            if (response.status === 401) {
+              localStorage.removeItem("token");
+              localStorage.removeItem("userEmail");
+              checkAuth();
+              showError("Session expired or invalid. Please log in again.");
+            }
+            
+            if (!response.ok) throw new Error(json.error || json.message || JSON.stringify(json));
+            return json;
+          } catch (e) {
+            if (e.message.startsWith("Session expired")) throw e;
+            if (!response.ok) throw new Error(text || `Request failed: ${response.status}`);
+            return text;
+          }
+        } catch (err) {
+          throw err;
+        }
+      }
+
+      // -- AUTHENTICATION LOGIC --
+
+      document.getElementById("btnSignup").addEventListener("click", async () => {
+        try {
+          const email = document.getElementById("authEmail").value;
+          const password = document.getElementById("authPassword").value;
+          if(!email || !password) throw new Error("Email and password required!");
+
+          showOutput({ status: "Sending request to /auth/signup..." });
+          const data = await callApi("/auth/signup", {
+            method: "POST",
+            body: JSON.stringify({ email, password })
+          });
+          showOutput(data);
+          showSuccess("Signup successful! Look at the server console or google sheets to read the OTP generated, then fill out the First Time Setup section.");
+        } catch (error) {
+          showOutput({ error: error.message });
+          showError(error.message);
+        }
+      });
+
+      document.getElementById("btnVerifyOtp").addEventListener("click", async () => {
+        try {
+          const email = document.getElementById("authEmail").value;
+          const otp = document.getElementById("authOtp").value;
+          
+          const skills = (document.getElementById("newProfileSkills").value || "").split(",").map(s => s.trim()).filter(Boolean);
+          const interests = (document.getElementById("newProfileInterests").value || "").split(",").map(i => i.trim()).filter(Boolean);
+          const availability = document.getElementById("newProfileAvailability").value;
+          const location = document.getElementById("newProfileLocation").value;
+
+          showOutput({ status: "Sending request to /auth/verify-otp..." });
+          const data = await callApi("/auth/verify-otp", {
+            method: "POST",
+            body: JSON.stringify({ email, otp, skills, interests, availability, location })
+          });
+          showOutput(data);
+
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+            if(data.user && data.user.email) localStorage.setItem("userEmail", data.user.email);
+            checkAuth();
+          }
+        } catch (error) {
+          showOutput({ error: error.message });
+          showError(error.message);
+        }
+      });
+
+      document.getElementById("btnLogin").addEventListener("click", async () => {
+        try {
+          const email = document.getElementById("authEmail").value;
+          const password = document.getElementById("authPassword").value;
+          if(!email || !password) throw new Error("Email and password required!");
+
+          showOutput({ status: "Sending request to /auth/login..." });
+          const data = await callApi("/auth/login", {
+            method: "POST",
+            body: JSON.stringify({ email, password })
+          });
+          showOutput(data);
+
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("userEmail", email);
+            checkAuth();
+          }
+        } catch (error) {
+          showOutput({ error: error.message });
+          showError(error.message);
+        }
+      });
+
+      document.getElementById("btnLogout").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userEmail");
+        checkAuth();
+        showOutput({ message: "Session destroyed. You have been completely logged out." });
+      });
+
+      // -- PROFILE LOGIC --
+
+      document.getElementById("getProfile").addEventListener("click", async () => {
+        try {
+          const data = await callApi("/profile");
+          showOutput(data);
+          
+          // Hydrate editing fields optionally
+          if(data && !data.error) {
+            if(data.skills) document.getElementById("editProfileSkills").value = data.skills.join(", ");
+            if(data.interests) document.getElementById("editProfileInterests").value = data.interests.join(", ");
+            if(data.availability) document.getElementById("editProfileAvailability").value = data.availability;
+            if(data.location && data.location.address) document.getElementById("editProfileLocation").value = data.location.address;
+          }
+        } catch (error) {
+          showOutput({ error: error.message });
+        }
+      });
+
+      document.getElementById("updateProfile").addEventListener("click", async () => {
+        try {
+          const skills = (document.getElementById("editProfileSkills").value || "").split(",").map(s => s.trim()).filter(Boolean);
+          const interests = (document.getElementById("editProfileInterests").value || "").split(",").map(i => i.trim()).filter(Boolean);
+          const availability = document.getElementById("editProfileAvailability").value;
+          const location = document.getElementById("editProfileLocation").value;
+
+          const data = await callApi("/profile", {
+            method: "PUT",
+            body: JSON.stringify({ skills, interests, availability, location })
+          });
+          showOutput(data);
+        } catch (error) {
+          showOutput({ error: error.message });
+        }
+      });
+
+      // -- GENERAL APP DATA FETCHING LOGIC --
+
+      function buildReportPayload(status) {
+        return {
+          title: document.getElementById("title").value,
+          description: document.getElementById("description").value,
+          category: document.getElementById("category").value || undefined,
+          urgency: document.getElementById("urgency").value || undefined,
+          peopleAffected: document.getElementById("peopleAffected").value ? Number(document.getElementById("peopleAffected").value) : undefined,
+          location: {
+            address: document.getElementById("location").value || undefined
+          },
+          status
+        };
+      }
+
+      document.getElementById("submitReport").addEventListener("click", async () => {
+        try {
+          const payload = buildReportPayload("submitted");
+          const data = await callApi("/report", {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          showOutput(data);
+        } catch (error) {
+          showOutput({ error: error.message });
+        }
+      });
+
+      document.getElementById("saveDraft").addEventListener("click", async () => {
+        try {
+          const payload = buildReportPayload("draft");
+          const data = await callApi("/report", {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          showOutput(data);
+        } catch (error) {
+          showOutput({ error: error.message });
+        }
+      });
+
+      document.getElementById("getOpportunities").addEventListener("click", async () => {
+        try {
+          const data = await callApi("/opportunities");
+          showOutput(data);
+        } catch (error) {
+          showOutput({ error: error.message });
+        }
+      });
+
+      document.getElementById("getDashboardStats").addEventListener("click", async () => {
+        try {
+          const data = await callApi("/dashboard/stats");
+          showOutput(data);
+        } catch (error) {
+          showOutput({ error: error.message });
+        }
+      });
+
+      document.getElementById("runIngestion").addEventListener("click", async () => {
+        try {
+          const data = await callApi("/ingest");
+          showOutput(data);
+        } catch (error) {
+          showOutput({ error: error.message });
+        }
+      });
+
+      document.getElementById("getRecommendations").addEventListener("click", async () => {
+        try {
+          const data = await callApi("/recommendations");
+          showOutput(data);
+        } catch (error) {
+          showOutput({ error: error.message });
+        }
+      });
+
+      document.getElementById("getLeaderboard").addEventListener("click", async () => {
+        try {
+          const data = await callApi("/leaderboard");
+          showOutput(data);
+        } catch (error) {
+          showOutput({ error: error.message });
+        }
+      });
+
+      // Initialize Startup Sequence
+      checkAuth();
+    </script>
+  </body>
+</html>
